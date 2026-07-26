@@ -25,9 +25,10 @@ This is not a skim-read. Each tier builds on the previous one and is designed fo
 | File | Contents | Approx. study time |
 |------|----------|--------------------|
 | [`01-basic.md`](./01-basic.md) | PHP language & engine fundamentals, types, OOP, closures, generators, exceptions, autoloading, PHP 8.x features · Laravel request lifecycle, service providers, facades, routing, controllers, validation, Eloquent basics, migrations, Artisan, baseline security | 6–8 hours |
-| [`02-intermediate.md`](./02-intermediate.md) | Service container internals & contextual binding, middleware pipeline, all Eloquent relationships, advanced queries & serialization, collections, transactions, queues/jobs/batching, events & observers, caching & locks, API design, auth guards, full testing strategy with Pest | 10–12 hours |
-| [`03-senior.md`](./03-senior.md) | Multi-tenancy architecture & leak vectors, spatie teams internals, Passport/OAuth2 deep dive, concurrency & race conditions, isolation levels, performance engineering (your 88% story), zero-downtime migrations (your 15M story), Clean Architecture/DDD/CQRS, scaling & deployment, observability, OWASP in Laravel, Octane & PHP internals | 14–18 hours |
-| [`04-question-bank.md`](./04-question-bank.md) | 200+ interview questions with answers, grouped by tier and theme · System design prompts · STAR stories built from your real experience · Live-coding exercises | Ongoing drill |
+| [`02-oop-php.md`](./02-oop-php.md) | **Canonical source for SOLID and design patterns.** SOLID with Laravel code, covariance/contravariance, patterns (Strategy, Factory, Observer, Repository, Decorator, Command, Adapter, Template Method, Null Object, Builder, Specification), composition vs inheritance, DI, interfaces vs abstract classes, advanced traits, immutability & value objects, design by contract, PHP 8.x OOP features, anti-patterns & code smells | 8–10 hours |
+| [`03-intermediate.md`](./03-intermediate.md) | Service container internals & contextual binding, middleware pipeline, all Eloquent relationships, advanced queries & serialization, collections, transactions, queues/jobs/batching, events & observers, caching & locks, API design, auth guards, full testing strategy with Pest | 10–12 hours |
+| [`04-senior.md`](./04-senior.md) | Multi-tenancy architecture & leak vectors, spatie teams internals, Passport/OAuth2 deep dive, concurrency & race conditions, isolation levels, performance engineering (your 88% story), zero-downtime migrations (your 15M story), Clean Architecture/DDD/CQRS, scaling & deployment, observability, OWASP in Laravel, Octane & PHP internals | 14–18 hours |
+| [`05-question-bank.md`](./05-question-bank.md) | 200+ interview questions with answers, grouped by tier and theme · System design prompts · STAR stories built from your real experience · Live-coding exercises | Ongoing drill |
 
 ---
 
@@ -48,6 +49,20 @@ Use this to find gaps fast. Mark your own confidence 1–5 in a copy of this tab
 - SPL interfaces: `ArrayAccess`, `IteratorAggregate`, `Countable`, `JsonSerializable`, `Stringable`
 - PSR standards (PSR-4, PSR-7, PSR-11, PSR-12, PSR-15)
 - PHP 8.0 → 8.4 feature timeline
+
+### OOP & design (`02-oop-php.md` is canonical for these)
+- SOLID with real Laravel code, and when each principle does *not* earn its keep
+- Covariance and contravariance — the PHP mechanics behind LSP
+- Creational patterns: Factory, Abstract Factory, Builder
+- Structural patterns: Decorator, Adapter, Null Object
+- Behavioural patterns: Strategy, Observer, Command, Template Method, Specification
+- Repository — and the argument for not using it
+- Composition vs inheritance, the fragile base class problem
+- Dependency injection: constructor, method, contextual; when each applies
+- Interfaces vs abstract classes vs traits — the decision tree
+- Value objects, immutability, `readonly` depth, deep clone
+- Design by contract: preconditions, postconditions, invariants, and the `assert()` caveat
+- Anti-patterns: god class, anemic domain model, primitive obsession, Law of Demeter violations, service locator
 
 ### Laravel framework
 - Full request lifecycle end to end
@@ -90,6 +105,13 @@ Tick these only when you can do them **out loud, unprompted, in under 3 minutes 
 - [ ] Walk the Laravel request lifecycle from `index.php` to response, naming real classes
 - [ ] Explain how the service container resolves a constructor dependency it has never seen
 - [ ] Explain how a Facade turns a static call into a container resolution
+- [ ] Explain covariance and contravariance, and why parameters widen but returns narrow
+- [ ] Explain why property types are invariant when methods are not
+- [ ] Distinguish Decorator from Adapter, and Strategy from Template Method, with a Laravel example of each
+- [ ] Argue *against* the Repository pattern convincingly, then say when you'd still use it
+- [ ] Explain why `assert()` is the wrong tool for a production invariant
+- [ ] Explain why `readonly` and `clone` are both shallow, and how to get depth
+- [ ] Spot the check-then-act race in well-factored, clean-looking OOP code
 - [ ] Describe the middleware pipeline implementation (why it's an onion, not a list)
 - [ ] Diagnose an N+1 and give three different fixes with trade-offs
 - [ ] Design row-level multi-tenancy and name six ways it leaks
@@ -110,10 +132,11 @@ Even with 8+ years of experience, run the tiers in order. The Basic tier is wher
 
 ```
 Week 1:  01-basic.md        + Basic Q&A drill
-Week 2:  02-intermediate.md + Intermediate Q&A drill
-Week 3:  03-senior.md (first half: multi-tenancy, concurrency, performance)
-Week 4:  03-senior.md (second half: architecture, scaling, security, internals)
-Week 5+: 04-question-bank.md daily drill + STAR story rehearsal
+Week 2:  02-oop-php.md      + OOP Q&A drill
+Week 3:  03-intermediate.md + Intermediate Q&A drill
+Week 4:  04-senior.md (first half: multi-tenancy, concurrency, performance)
+Week 5:  04-senior.md (second half: architecture, scaling, security, internals)
+Week 6+: 05-question-bank.md daily drill + STAR story rehearsal
 ```
 
 **Next topic in skill order:** Go (Golang) — after PHP/Laravel is solid.

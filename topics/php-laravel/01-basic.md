@@ -2587,4 +2587,4 @@ Answer out loud, then check. Vague answers = the gap to close.
 
 ---
 
-**Next:** [`02-intermediate.md`](./02-intermediate.md) — service container internals, the full relationship catalogue, queues and batching, caching and locks, and a complete testing strategy.
+**Next:** [`02-oop-php.md`](./02-oop-php.md) — SOLID with real Laravel code, design patterns, composition vs inheritance, value objects and immutability, design by contract, and OOP anti-patterns.

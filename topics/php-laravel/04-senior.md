@@ -18,7 +18,7 @@
 10. [Read Replicas & Connection Pooling](#10-read-replicas--connection-pooling)
 11. [Clean Architecture & DDD in Laravel](#11-clean-architecture--ddd-in-laravel)
 12. [CQRS, Event Sourcing & the Outbox Pattern](#12-cqrs-event-sourcing--the-outbox-pattern)
-13. [SOLID with Real Laravel Code](#13-solid-with-real-laravel-code)
+13. [SOLID at Architectural Scale](#13-solid-at-architectural-scale)
 14. [Design Patterns in the Laravel Source](#14-design-patterns-in-the-laravel-source)
 15. [Scaling & Deployment](#15-scaling--deployment)
 16. [Laravel Octane & Long-Lived Processes](#16-laravel-octane--long-lived-processes)
@@ -1902,80 +1902,23 @@ current quantity = 0 + 100 - 5 - 3 = 92
 
 ---
 
-## 13. SOLID with Real Laravel Code
+## 13. SOLID at Architectural Scale
 
-### S — Single Responsibility
+> **Full treatment with worked code lives in [`02-oop-php.md`](./02-oop-php.md) §1** — the five principles, covariance/contravariance as the mechanics behind LSP, and a "when this principle is the wrong call" note for each. Don't re-read it here; this section covers only what changes when the unit of design is a *service boundary* rather than a class.
 
-```php
-// ❌ Controller doing validation, business logic, persistence, notification, and indexing
-public function deduct(Request $request, $id)
-{
-    $request->validate([...]);
-    $item = InventoryItem::find($id);
-    if ($item->quantity < $request->amount) { return response()->json([...], 409); }
-    $item->quantity -= $request->amount;
-    $item->save();
-    Mail::to(...)->send(new LowStock($item));
-    Elasticsearch::index([...]);
-    return response()->json($item);
-}
+At senior level the acronym itself is table stakes. What differentiates the answer is applying the same reasoning one level up, and knowing when the ceremony isn't worth it.
 
-// ✅ Each class has one reason to change
-DeductStockRequest      → input validation + authorization
-DeductStockData         → typed input contract
-DeductStockAction       → the business transaction
-StockDeducted event     → the fact
-NotifyLowStock listener → notification side effect
-IndexItem listener      → search side effect
-InventoryItemResource   → output shape
-DeductStockController   → HTTP wiring only
-```
+| Principle | At class scale | At architectural scale |
+|-----------|----------------|------------------------|
+| **SRP** | One reason to change | One team owns it; one deploy cadence; one on-call rotation |
+| **OCP** | Add a class, don't edit one | Add a consumer to the event stream, don't edit the producer |
+| **LSP** | Subtype honours the contract | A new service version honours the old API contract (see contract testing) |
+| **ISP** | Narrow interfaces | Narrow, versioned API surfaces — don't force every client through one fat endpoint |
+| **DIP** | Depend on abstractions | The domain owns the contract; adapters for Stripe, S3, and Elasticsearch depend on it |
 
-### O — Open/Closed
+### The one example worth keeping here — LSP and read replicas
 
-```php
-// ❌ Every new channel edits this method
-class NotificationService
-{
-    public function send(string $type, $data): void
-    {
-        if ($type === 'email') { /* ... */ }
-        elseif ($type === 'slack') { /* ... */ }
-        elseif ($type === 'sms') { /* ... */ }      // ← modify to extend
-    }
-}
-
-// ✅ Extend by adding a class and tagging it — no existing code changes
-interface AlertChannel
-{
-    public function supports(Organization $org): bool;
-    public function send(LowStockAlert $alert): void;
-}
-
-final class SlackAlertChannel implements AlertChannel { /* ... */ }
-final class EmailAlertChannel implements AlertChannel { /* ... */ }
-final class WebhookAlertChannel implements AlertChannel { /* ... */ }
-
-$this->app->tag([SlackAlertChannel::class, EmailAlertChannel::class, WebhookAlertChannel::class], 'alert.channels');
-
-final class AlertDispatcher
-{
-    public function __construct(private readonly iterable $channels) {}
-
-    public function dispatch(LowStockAlert $alert, Organization $org): void
-    {
-        foreach ($this->channels as $channel) {
-            if ($channel->supports($org)) {
-                $channel->send($alert);
-            }
-        }
-    }
-}
-
-$this->app->bind(AlertDispatcher::class, fn ($app) => new AlertDispatcher($app->tagged('alert.channels')));
-```
-
-### L — Liskov Substitution
+This ties directly to §10 (read replicas and connection pooling), which is why it lives in this file rather than in the OOP tier.
 
 ```php
 // ❌ Subtype strengthens a precondition — breaks substitutability
@@ -1987,7 +1930,7 @@ class ReadOnlyStockRepository extends EloquentStockRepository
     }
 }
 
-// ✅ Segregate the contract instead
+// ✅ Segregate the contract instead — the type system now prevents writing to a replica
 interface StockReader { public function find(int $id, int $orgId): ?InventoryItem; }
 interface StockWriter { public function updateQuantity(InventoryItem $i, Quantity $q): void; }
 
@@ -1995,53 +1938,19 @@ final class EloquentStockRepository implements StockReader, StockWriter {}
 final class ReplicaStockRepository implements StockReader {}
 ```
 
-### I — Interface Segregation
+A reporting service typed against `StockReader` **cannot** be handed something that writes, and a replica-backed implementation **cannot** be passed where writes are expected. This is ISP and LSP doing real work: the replica/primary split stops being a convention people have to remember and becomes a compile-time guarantee.
 
-```php
-// ❌ Fat interface forces empty implementations
-interface Repository
-{
-    public function find($id); public function all(); public function create(array $a);
-    public function update($id, array $a); public function delete($id);
-    public function paginate($n); public function search(string $q); public function export();
-}
-
-// ✅ Small, purposeful interfaces composed where needed
-interface FindsStock  { public function find(int $id, int $orgId): ?InventoryItem; }
-interface LocksStock  { public function lockForUpdate(int $id, int $orgId): InventoryItem; }
-interface WritesStock { public function updateQuantity(InventoryItem $i, Quantity $q): void; }
-```
-
-### D — Dependency Inversion
-
-```php
-// ❌ High-level policy depends on a low-level detail
-final class DeductStockAction
-{
-    public function execute(int $itemId): void
-    {
-        $item = InventoryItem::find($itemId);        // hard dependency on Eloquent
-        Elasticsearch::index(...);                    // hard dependency on ES
-    }
-}
-
-// ✅ Both depend on abstractions owned by the domain
-final class DeductStockAction
-{
-    public function __construct(
-        private readonly StockRepositoryInterface $stock,     // domain owns this interface
-        private readonly SearchIndexerInterface $indexer,
-    ) {}
-}
-```
-
-> **Interview framing:** don't recite the acronym. Say: "SOLID is mostly about isolating what changes. In our inventory domain, the alerting channels changed constantly while the deduction logic didn't, so I made channels open for extension via container tagging and kept the deduction action closed. The rest of the codebase didn't need that ceremony."
+> **Interview framing — do not recite the acronym.** Say: *"SOLID is mostly about isolating what changes. In our inventory domain the alerting channels changed constantly while the deduction logic didn't, so I made channels open for extension via container tagging and kept the deduction action closed. Everywhere else I skipped the ceremony — most of the codebase had one implementation and no prospect of a second, and an interface there is just a file you have to open twice."*
+>
+> The second half of that answer is what marks it as senior. Anyone can argue *for* abstraction; knowing where it doesn't pay for itself is the harder judgement, and it's what interviewers are actually probing.
 
 ---
 
 ## 14. Design Patterns in the Laravel Source
 
-Being able to point at real framework code is much stronger than definitions.
+> **Applying** these patterns in your own code is covered in [`02-oop-php.md`](./02-oop-php.md) §3, including Adapter, Template Method, Null Object, Builder, and Specification with full implementations. This section is the complementary skill: pointing at where the **framework itself** uses each one.
+
+Naming a pattern is cheap. Naming the class in the Laravel source that implements it is not, and it's a fast way to signal you've read the framework rather than just used it.
 
 | Pattern | Where in Laravel | Mechanism |
 |---------|-----------------|-----------|
@@ -2090,8 +1999,14 @@ abstract class Manager
 // Extend without touching the framework
 Queue::extend('my-broker', fn ($app, $config) => new MyBrokerConnector($config));
 Cache::extend('dynamodb-custom', fn ($app, $config) => Cache::repository(new MyStore($config)));
-Auth::extend('jwt-custom', fn ($app, $name, $config) => new JwtGuard(...));
-Validator::extend('tenant_owned', fn (...) => ...);
+Auth::extend('jwt-custom', fn ($app, $name, $config) => new JwtGuard($app['request'], $config));
+Validator::extend(
+    'tenant_owned',
+    fn (string $attribute, mixed $value, array $params, Validator $validator): bool => DB::table($params[0])
+        ->where('id', $value)
+        ->where('organization_id', app(TenantContext::class)->organizationIdOrFail())
+        ->exists()
+);
 ```
 
 ---
@@ -2816,4 +2731,4 @@ $stock = $responses['stock']->json();
 
 ---
 
-**Next:** [`04-question-bank.md`](./04-question-bank.md) — 200+ questions with answers, system design prompts, live-coding exercises, and STAR stories built from your real experience.
+**Next:** [`05-question-bank.md`](./05-question-bank.md) — 200+ questions with answers, system design prompts, live-coding exercises, and STAR stories built from your real experience.

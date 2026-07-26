@@ -2832,4 +2832,4 @@ arch()->preset()->security();     // Pest 3: bans md5, sha1, eval, extract, etc.
 
 ---
 
-**Next:** [`03-senior.md`](./03-senior.md) — multi-tenancy architecture, concurrency and isolation levels, performance engineering, zero-downtime migrations, DDD/CQRS, scaling, observability, and security.
+**Next:** [`04-senior.md`](./04-senior.md) — multi-tenancy architecture, concurrency and isolation levels, performance engineering, zero-downtime migrations, DDD/CQRS, scaling, observability, and security.
