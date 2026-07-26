@@ -50,7 +50,8 @@ SKILL ORDER: (I will update this later)
 13. Docker/K8s/Terraform (Done)
 14. CI/CD (Done)
 15. Architecture patterns (Done)
-16. Kafka/RabbitMQ/SQS/SNS
+16. Kafka/RabbitMQ/SQS/SNS (Done)
+17. Nginx
 
 Create a specific topic wise markdown file.
 
