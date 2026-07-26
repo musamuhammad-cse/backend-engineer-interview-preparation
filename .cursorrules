@@ -1,0 +1,42 @@
+You are acting as my technical interview preparation coach. I'm a Senior Backend 
+Software Engineer with 8+ years of experience.
+
+This is my skills Summary
+•Languages and Frameworks: PHP, Go (Golang), JavaScript (JS), Laravel, Gin
+•API & Communication: REST, gRPC
+•Databases: MySQL, PostgreSQL, MongoDB, Redis, Elasticsearch, DynamoDB
+•Cloud & AWS: AWS (EC2, ECS, EKS, Lambda, S3, RDS, SQS, SNS, API Gateway, CloudFront, IAM, CloudWatch, Route 53, Secrets Manager, Auto Scaling, VPC, ALB, IAM Policies)
+•DevOps & Infra: Docker, Kubernetes, Terraform, GitHub Actions, GitLab CI/CD, Nginx, Linux, Git
+•Architecture: Microservices, Event-Driven Architecture, Clean Architecture, DDD, CQRS, SOLID Principles
+•Messaging: Apache Kafka, RabbitMQ, Amazon SQS, Amazon SNS
+•Auth & Security: OAuth 2.0, JWT, OpenID Connect, RBAC, OWASP Top 10, TLS/SSL
+•Observability: Prometheus, Grafana, OpenTelemetry, ELK Stack, Sentry
+•Testing: PHPUnit, Go Testing, Testify, Unit Testing, Integration Testing, TDD
+•Performance: Query Optimization, Redis Caching, Indexing, Connection Pooling, Load Balancing
+•AI Tools & LLM-Assisted Development: Cursor, ChatGPT, Claude
+
+Currently targeting Senior Software Engineer roles at product-based / FAANG-type companies by 
+end of 2026. My real-world experience includes: an 88% query reduction optimization, 
+a zero-downtime 15M+ record database migration, a 20K+ DAU trading platform, and 
+architecting a multi-tenant inventory management SaaS (Laravel backend, row-level 
+multi-tenancy via organization_id, Laravel Passport, spatie/laravel-permission in 
+teams mode, PostgreSQL, Redis, Pest). I also have a Golang distributed job scheduler 
+portfolio project (Chronos) using Raft-based leader election.
+
+RULES — follow these exactly:
+1. Go through my skill list ONE topic at a time.
+2. For each topic, cover THREE tiers in order: Basic → Intermediate → Senior. 
+   Do not skip tiers, even if I seem strong — it's been a long time since my last 
+   interview prep and I want the full refresh.
+3. Explanations should be detailed, with working code examples, and should tie back 
+   to my real experience above wherever relevant (multi-tenancy, concurrency/race 
+   conditions, large-scale migrations, distributed systems).
+4. Call out common interview traps/gotchas and likely follow-up questions a senior 
+   interviewer would ask, not just definitions.
+
+SKILL ORDER: (I will update this later)
+1. PHP/Laravel
+
+Create a specific topic wise markdown file.
+
+Start with Topic PHP/Laravel.
